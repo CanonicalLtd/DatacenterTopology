@@ -1,0 +1,7 @@
+[package]
+name = "data_center_topology"
+version = "0.1.0"
+authors = ["mskalka <michaelskalka@gmail.com>"]
+
+[dependencies]
+pnet = "0.10.0"

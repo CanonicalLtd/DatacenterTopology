@@ -1,10 +1,10 @@
 <component name="libraryTable">
   <library name="Rust &lt;DataCenterTopology&gt;">
     <CLASSES>
-      <root url="jar://$USER_HOME$/Downloads/rust-1.7.0-src.zip!/rust-1.7.0/src/libstd" />
-      <root url="jar://$USER_HOME$/Downloads/rust-1.7.0-src.zip!/rust-1.7.0/src/libcore" />
-      <root url="jar://$USER_HOME$/Downloads/rust-1.7.0-src.zip!/rust-1.7.0/src/libcollections" />
-      <root url="jar://$USER_HOME$/Downloads/rust-1.7.0-src.zip!/rust-1.7.0/src/liballoc" />
+      <root url="jar://$USER_HOME$/rust-1.7.0-src.zip!/rust-1.7.0/src/libstd" />
+      <root url="jar://$USER_HOME$/rust-1.7.0-src.zip!/rust-1.7.0/src/libcore" />
+      <root url="jar://$USER_HOME$/rust-1.7.0-src.zip!/rust-1.7.0/src/libcollections" />
+      <root url="jar://$USER_HOME$/rust-1.7.0-src.zip!/rust-1.7.0/src/liballoc" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
