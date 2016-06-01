@@ -1,1 +1,0 @@
-{"rustc":943039499351779807,"target":14822578808468634334,"profile":4370414467553909544,"local":{"variant":"Precalculated","fields":["0.9.0"]},"features":"Some([\"default\", \"syntex\", \"syntex_syntax\", \"with-syntex\"])","deps":[["regex v0.1.71",5923261969375711991],["syntex v0.31.0",11144085440017118494],["syntex_syntax v0.31.0",8790774435869072304]]}
