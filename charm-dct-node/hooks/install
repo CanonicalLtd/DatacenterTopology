@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+status-set waiting "Create relation to controller to continue"

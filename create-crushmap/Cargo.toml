@@ -1,0 +1,9 @@
+[package]
+name = "create-crushmap"
+version = "0.1.0"
+authors = ["mskalka <michaelskalka@gmail.com>"]
+
+[dependencies]
+crushtool = "0.3.8"
+juju = "0.5.3"
+log = "0.3.6"

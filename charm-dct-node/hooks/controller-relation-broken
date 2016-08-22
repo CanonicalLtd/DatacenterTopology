@@ -1,0 +1,3 @@
+#!/bin/bash
+
+status-set waiting "Re-establish controller relation to continue."

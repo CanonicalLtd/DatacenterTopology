@@ -1,0 +1,6 @@
+discover-neighbors:
+  description: |
+    Discovers neighbors located on the same physical switch
+
+show-data:
+  description: Shows the current dataset on the node

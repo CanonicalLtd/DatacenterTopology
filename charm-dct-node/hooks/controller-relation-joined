@@ -1,0 +1,4 @@
+#!/bin/bash
+
+relation-set hostname=$HOSTNAME
+status-set waiting "Begin network discovery on dct-controller to continue"

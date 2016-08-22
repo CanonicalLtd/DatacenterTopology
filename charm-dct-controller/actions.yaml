@@ -1,0 +1,27 @@
+create-crushmap:
+  description: Creates a crushmap
+begin-discovery:
+  description: Cause the nodes to enter discovery mode
+
+
+add-units:
+  description: Add unit(s) to the cluster
+  params:
+    name:
+      type: string
+      description: Name of the machine
+    path:
+      type: string
+      description: Path to the machine
+remove-units:
+  description: Remove unit(s) from the cluster
+  params:
+    name:
+      type: string
+      description: Name of the machine
+    path:
+      type: string
+      description: Path to the machine
+display-crushmap:
+  desription: Displays the current crushmap
+

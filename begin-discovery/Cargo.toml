@@ -1,0 +1,7 @@
+[package]
+name = "begin-discovery"
+version = "0.1.0"
+authors = ["mskalka <michaelskalka@gmail.com>"]
+
+[dependencies]
+juju = "0.5.1"

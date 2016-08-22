@@ -1,0 +1,10 @@
+[package]
+name = "controller-relation-changed"
+version = "0.1.0"
+authors = ["mskalka <michaelskalka@gmail.com>"]
+
+[dependencies]
+pnet = "0.10.0"
+juju = "0.5.1"
+charmhelpers = "0.1.3"
+log = "0.3.6"

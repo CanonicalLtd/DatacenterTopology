@@ -1,0 +1,20 @@
+name: dct-node
+summary: Node to communicate with main DCT charm
+maintainer: Michael Skalka
+description: |
+  Gathers information about the networked machines and returns it to the DCT controller
+tags:
+  - misc
+
+subordinate: true
+
+
+requires:
+  controller:
+    interface: controller
+  ceph-client:
+    interface: ceph-client
+    scope: container
+  mon:
+    interface: ceph-osd
+    scope: container

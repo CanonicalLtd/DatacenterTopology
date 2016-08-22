@@ -1,0 +1,6 @@
+#Overview
+The purpose of this charm is to work around the stateless nature of the Ceph-mon and Ceph-osd charms to create smart Ceph crushmaps.
+
+#Installation
+In order to use this charm you need at a minimum three Ceph mons running on a network. Deployment of OSDs is not recommended, however it should work even with OSDs already deployed.
+

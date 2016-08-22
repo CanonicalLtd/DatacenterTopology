@@ -1,0 +1,4 @@
+#!/bin/bash
+set -e
+
+status-set waiting "Waiting for controller relation."

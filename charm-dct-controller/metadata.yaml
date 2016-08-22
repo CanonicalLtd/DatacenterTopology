@@ -1,0 +1,12 @@
+name: dct-controller
+summary: Programatically creates smart crushmaps for Ceph. 
+maintainer: Michael Skalka <MichaelSkalka@gmail.com>
+description: |
+  This carm is designed to work around the stateless nature of the Ceph charms in order to programatically create ceph crushmaps.
+  The current issue with crushmap creation in Ceph is the limited administrative control over automatic generation, contrasted with difficult manual configuration.
+tags:
+  - network
+
+provides:
+  controller:
+    interface: controller
