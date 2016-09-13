@@ -333,8 +333,8 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             },
             item_weights: item_weights,
         });
-        final_name_map.push((current_index, bucket_name.to_string()));
-        new_rack_items.push((current_index, Some(bucket_name.to_string())));
+        final_name_map.push((current_index, format!("Rack: {}",bucket_name.to_string())));
+        new_rack_items.push((current_index, Some(format!("Rack: {}",bucket_name.to_string()))));
         new_rack_buckets.push(bucket);
         current_index -= 1;
         bucket_name += 1;
@@ -360,9 +360,10 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     println!("Final name map:{:?}", final_name_map);
 
     let mut final_buckets: Vec<crushtool::BucketTypes> = Vec::new();
+    final_buckets.push(new_default_bucket);
     final_buckets.extend(carryover_buckets.clone());
     final_buckets.extend(new_rack_buckets);
-    final_buckets.push(new_default_bucket);
+
 
     create_crushmap(final_buckets, machines_map.len() as i32, final_name_map);
 

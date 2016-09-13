@@ -8,7 +8,6 @@ The aim of this project is to programatically discover which machines in an exis
 
 It is broken down into two parts: a single controller and a series of subordinate nodes which gather information for said controller. Due to the limitations with Juju charms the only sane method for communication between multiple nodes is in a node/server relationship.
 
-Currently the project is not fully functional. Ceph does not recognise the encoded crushmap as it stands, and will throw errors if it set in Ceph. The author was not yet able to determine if this was a fault of their code, the Crushtool library, or Ceph itself.
 
 ## Use
 
@@ -16,7 +15,7 @@ Currently the project is not fully functional. Ceph does not recognise the encod
 
 	> dct-controller:
   	>   num-units: n
-  	
+
   	Where n is the number of Ceph OSDs present in the system.
 2. Deploy the dct-controller charm to a machine running a Ceph Mon. **This is exremely important!**
 3. Deploy the dct-node charm
@@ -32,4 +31,3 @@ The author strongly recommends having `juju debug-log` running to keep an eye on
 
 ## Limitations
 Currently it only operates on an IPv4 network, as IPv6 does not have a 1 to 1 equivalent for ARP requests.
-
