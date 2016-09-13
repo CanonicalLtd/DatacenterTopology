@@ -7,7 +7,6 @@ use std::collections::{HashMap, HashSet};
 use std::env;
 use std::io::prelude::*;
 use std::fs::File;
-use std::path::Path;
 
 // Here is where the controller takes input from the subordinate services,
 // determines which nodes are in the same rack, and finally
@@ -229,6 +228,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     // be thrown out when we make the new map
 
     let mut carryover_buckets: HashSet<crushtool::BucketTypes> = HashSet::new();
+    let mut weighty_buckets: HashMap<String, crushtool::BucketTypes> = HashMap::new();
     let mut new_rack_buckets: Vec<crushtool::BucketTypes> = Vec::new();
     println!("Old buckets: {:?}", current_map.buckets.clone());
 
@@ -256,6 +256,13 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
         };
         if machine_ids.contains(&id) {
             carryover_buckets.insert(bucket.clone());
+            let mut name: String = "".to_string();
+            for (bucket_name, bucket_id) in name_map.clone() {
+                if bucket_id == id {
+                    name = bucket_name.clone();
+                }
+            };
+            weighty_buckets.insert(name.clone(), bucket.clone());
         }
     }
     println!("Carryover buckets: {:?}", carryover_buckets);
@@ -269,9 +276,12 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 
     let mut new_rack_items: Vec<(i32, Option<String>)> = Vec::new();
     let mut bucket_name: i32 = 0;
+    let mut running_weight: u32 = 0;
+    let mut default_bucket_weights: Vec<(u32, u32)> = Vec::new();
     // For each group of machines in our racks var we make a bucket
     for members in racks {
         let mut bucket_items: Vec<(i32, Option<String>)> = Vec::new();
+        let mut item_weights: Vec<(u32, u32)> = Vec::new();
 
         // For each machine in the machines map we grab the bucket items from out machines map.
         // These are matched by the machine's ID
@@ -284,9 +294,30 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             // (the root of our machine/osd tree)
             // we only push that index into our bucket items list, along with the corresponding
             // machine name
-            bucket_items.push((index, Some(machine.to_string())));
-        }
+            let weight: u32;
+            // Pull the bucket out by index, grab weight
+            let bucket = weighty_buckets.get(&machine).unwrap();
 
+            match bucket {
+                &crushtool::BucketTypes::Uniform(ref uniform) => {
+                    weight = uniform.bucket.weight;}
+                &crushtool::BucketTypes::List(ref list) => {
+                    weight = list.bucket.weight;}
+                &crushtool::BucketTypes::Tree(ref tree) => {
+                    weight = tree.bucket.weight;}
+                &crushtool::BucketTypes::Straw(ref straw) => {
+                    weight = straw.bucket.weight;}
+                &crushtool::BucketTypes::Straw2(ref straw2) => {
+                    weight = straw2.bucket.weight;}
+                &crushtool::BucketTypes::Unknown => {
+                    weight = 0;}
+            };
+
+            bucket_items.push((index, Some(machine.to_string())));
+            item_weights.push((weight, 65536));
+        }
+        let total_weight = item_weights.iter().fold(0, |acc, &(x, _)| acc + x);
+        running_weight += total_weight;
         // Make a new bucket, put the items matched above into it, then push it to our rack buckets
         let bucket = crushtool::BucketTypes::Straw(crushtool::CrushBucketStraw {
             bucket: crushtool::Bucket {
@@ -294,19 +325,20 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
                 bucket_type: crushtool::OpCode::ChooseIndep,
                 alg: crushtool::BucketAlg::Straw,
                 hash: crushtool::CrushHash::RJenkins1,
-                weight: 0,
+                weight: total_weight,
                 size: members.len() as u32,
                 items: bucket_items.clone(),
                 perm_n: 0,
                 perm: members.len() as u32,
             },
-            item_weights: vec![(0, 0); bucket_items.len()],
+            item_weights: item_weights,
         });
         final_name_map.push((current_index, bucket_name.to_string()));
         new_rack_items.push((current_index, Some(bucket_name.to_string())));
         new_rack_buckets.push(bucket);
         current_index -= 1;
         bucket_name += 1;
+        default_bucket_weights.push((total_weight, 65536));
     }
     // Make a new default bucket
     let new_default_bucket = crushtool::BucketTypes::Straw(crushtool::CrushBucketStraw {
@@ -315,13 +347,13 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             bucket_type: crushtool::OpCode::SetChooseLocalTries,
             alg: crushtool::BucketAlg::Straw,
             hash: crushtool::CrushHash::RJenkins1,
-            weight: 0,
+            weight: running_weight,
             size: new_rack_buckets.len() as u32,
             items: new_rack_items.clone(),
             perm_n: 0,
             perm: new_rack_buckets.len() as u32,
         },
-        item_weights: vec![(0, 0); new_rack_items.len()],
+        item_weights: default_bucket_weights,
     });
     final_name_map.push((-1, "default".to_string()));
     final_name_map.sort();

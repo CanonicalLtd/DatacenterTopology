@@ -8,13 +8,12 @@ tags:
 
 subordinate: true
 
-
 requires:
   controller:
     interface: controller
   ceph-client:
     interface: ceph-client
     scope: container
-  mon:
-    interface: ceph-osd
+  osd:
+    interface: juju-info
     scope: container
