@@ -54,7 +54,8 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
     let controller_id = match env::var("JUJU_UNIT_NAME") {
         Ok(id) => id,
         Err(_) => {
-            juju::log("Failed to grab controller id from JUJU.", Some(LogLevel::Error));
+            juju::log("Failed to grab controller id from JUJU.",
+                      Some(LogLevel::Error));
             panic!("Failed to grab controller id from JUJU.");
         }
 
@@ -63,14 +64,15 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
     let controller = parse_unit_into_relation(controller_id);
 
     let juju_related_units =
-    match juju::relation_get_by_id("related-units", &relation_id, &controller) {
-        Ok(units) => units,
-        Err(_) => {
-            juju::log("Failed to grab related units from juju relation.", Some(LogLevel::Error));
-            panic!("Failed to grab related units from juju relation.");
-        }
+        match juju::relation_get_by_id("related-units", &relation_id, &controller) {
+            Ok(units) => units,
+            Err(_) => {
+                juju::log("Failed to grab related units from juju relation.",
+                          Some(LogLevel::Error));
+                panic!("Failed to grab related units from juju relation.");
+            }
 
-    };
+        };
 
     let mut juju_parsed_units: Vec<juju::Relation> = Vec::new();
 
@@ -84,7 +86,8 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
         let hostname = match juju::relation_get_by_id("hostname", &relation_id, &unit) {
             Ok(h) => h,
             Err(_) => {
-                juju::log(format!("Failed to grab hostname from {:?}.", unit), Some(LogLevel::Error));
+                juju::log(format!("Failed to grab hostname from {:?}.", unit),
+                          Some(LogLevel::Error));
                 panic!("Failed to grab hostname from {:?}.", unit);
             }
 
@@ -92,7 +95,8 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
         let neighbors_raw = match juju::relation_get_by_id("neighbors", &relation_id, &unit) {
             Ok(n) => n,
             Err(_) => {
-                juju::log(format!("Failed to grab neighbors from {:?}.", unit), Some(LogLevel::Error));
+                juju::log(format!("Failed to grab neighbors from {:?}.", unit),
+                          Some(LogLevel::Error));
                 panic!("Failed to grab neighbors from {:?}.", unit);
             }
 
@@ -113,7 +117,7 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
     machines
 }
 
-fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>>{
+fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>> {
 
     let mut racks: HashSet<Vec<String>> = HashSet::new();
     let mut racked_machines: HashSet<String> = HashSet::new();
@@ -261,7 +265,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
                 if bucket_id == id {
                     name = bucket_name.clone();
                 }
-            };
+            }
             weighty_buckets.insert(name.clone(), bucket.clone());
         }
     }
@@ -300,17 +304,23 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 
             match bucket {
                 &crushtool::BucketTypes::Uniform(ref uniform) => {
-                    weight = uniform.bucket.weight;}
+                    weight = uniform.bucket.weight;
+                }
                 &crushtool::BucketTypes::List(ref list) => {
-                    weight = list.bucket.weight;}
+                    weight = list.bucket.weight;
+                }
                 &crushtool::BucketTypes::Tree(ref tree) => {
-                    weight = tree.bucket.weight;}
+                    weight = tree.bucket.weight;
+                }
                 &crushtool::BucketTypes::Straw(ref straw) => {
-                    weight = straw.bucket.weight;}
+                    weight = straw.bucket.weight;
+                }
                 &crushtool::BucketTypes::Straw2(ref straw2) => {
-                    weight = straw2.bucket.weight;}
+                    weight = straw2.bucket.weight;
+                }
                 &crushtool::BucketTypes::Unknown => {
-                    weight = 0;}
+                    weight = 0;
+                }
             };
 
             bucket_items.push((index, Some(machine.to_string())));
@@ -333,8 +343,8 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             },
             item_weights: item_weights,
         });
-        final_name_map.push((current_index, format!("Rack: {}",bucket_name.to_string())));
-        new_rack_items.push((current_index, Some(format!("Rack: {}",bucket_name.to_string()))));
+        final_name_map.push((current_index, format!("Rack: {}", bucket_name.to_string())));
+        new_rack_items.push((current_index, Some(format!("Rack: {}", bucket_name.to_string()))));
         new_rack_buckets.push(bucket);
         current_index -= 1;
         bucket_name += 1;
@@ -371,7 +381,9 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 }
 
 fn create_crushmap(final_buckets: Vec<crushtool::BucketTypes>,
-                   devices: i32, final_name_map: Vec<(i32, String)>) -> Result<(), String> {
+                   devices: i32,
+                   final_name_map: Vec<(i32, String)>)
+                   -> Result<(), String> {
 
     let mut new_crushmap: crushtool::CrushMap = crushtool::CrushMap {
         magic: 65536,
@@ -443,8 +455,11 @@ fn parse_unit_into_relation(unit: String) -> juju::Relation {
     let v: Vec<&str> = unit.split('/').collect();
     let id: usize = match v[1].parse::<usize>() {
         Ok(i) => i,
-        Err(_) => {juju::log(format!("Could not parse {} into relation.", unit), Some(LogLevel::Error));
-            panic!("Could not parse {} into relation.", unit)},
+        Err(_) => {
+            juju::log(format!("Could not parse {} into relation.", unit),
+                      Some(LogLevel::Error));
+            panic!("Could not parse {} into relation.", unit)
+        }
 
     };
 
