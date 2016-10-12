@@ -21,7 +21,7 @@ fn main() {
 
     let crush_result = match generate_crushmap(racks) {
         Ok(_) => {
-            juju::status_set(juju::Status {
+            let _ = juju::status_set(juju::Status {
                 status_type: juju::StatusType::Maintenance,
                 message: "Crushmap generated in /tmp. Please examine crushmap with Ceph before \
                           use."
@@ -31,7 +31,7 @@ fn main() {
         Err(e) => {
             let message = format!("Failed to create crushmap with error: {}", e);
             juju::log(message.clone(), Some(LogLevel::Error));
-            juju::status_set(juju::Status {
+            let _ = juju::status_set(juju::Status {
                 status_type: juju::StatusType::Maintenance,
                 message: message,
             });
@@ -176,7 +176,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     path.push("currentmap");
     let mut some_crushmap_file = try!(File::open(path).map_err(|e| e.to_string()));
     let mut crushmap_bytes: Vec<u8> = Vec::new();
-    some_crushmap_file.read_to_end(&mut crushmap_bytes);
+    let _ = some_crushmap_file.read_to_end(&mut crushmap_bytes);
     // The actual Ceph crushmap pulled from our active cluster
     let current_map: crushtool::CrushMap = try!(crushtool::decode_crushmap(&crushmap_bytes[..]));
 
@@ -375,9 +375,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     final_buckets.extend(new_rack_buckets);
 
 
-    create_crushmap(final_buckets, machines_map.len() as i32, final_name_map);
-
-    Ok(())
+    create_crushmap(final_buckets, machines_map.len() as i32, final_name_map)
 }
 
 fn create_crushmap(final_buckets: Vec<crushtool::BucketTypes>,
