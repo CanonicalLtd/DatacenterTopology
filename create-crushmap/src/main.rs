@@ -30,7 +30,7 @@ fn main() {
         }
         Err(e) => {
             let message = format!("Failed to create crushmap with error: {}", e);
-            juju::log(message.clone(), Some(LogLevel::Error));
+            juju::log(&message, Some(LogLevel::Error));
             juju::status_set(juju::Status {
                 status_type: juju::StatusType::Maintenance,
                 message: message,
@@ -125,8 +125,8 @@ fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>
 
     for (machine, neighbors) in machines {
         let mut members: Vec<String> = Vec::new();
-        members.push(machine.clone());
-        members.extend(neighbors.clone());
+        members.push(machine);
+        members.extend(neighbors);
         members.sort();
         members.dedup();
         potential_racks.push(members);
@@ -136,7 +136,7 @@ fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>
 
     println!("Potential racks: {:?}", potential_racks);
 
-    'rack: for rack in potential_racks.clone() {
+    'rack: for rack in potential_racks {
         // If we have no racks, add it to the rack list.
         if racks.is_empty() {
             racks.insert(rack.clone());
@@ -144,15 +144,15 @@ fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>
             continue 'rack;
         }
         // for each rack, check to see if any of its members is already in another rack
-        for machine in rack.clone() {
+        for machine in &rack {
             println!("Checking {}", machine);
-            if racked_machines.contains(&machine) {
+            if racked_machines.contains(machine) {
                 println!("Machine found in list: {:?}", racked_machines);
                 continue 'rack;
             }
         }
         racks.insert(rack.clone());
-        racked_machines.extend(rack.clone());
+        racked_machines.extend(rack);
     }
 
     println!("Racks: {:?}", racks);
@@ -212,7 +212,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     let mut machine_ids: Vec<i32> = Vec::new();
     for (id, index) in name_map.clone() {
         if machines.contains(&id) {
-            machines_map.insert(id.clone(), index.clone());
+            machines_map.insert(id, index.clone());
             machine_ids.push(index);
         }
     }
@@ -234,9 +234,9 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     let mut carryover_buckets: HashSet<crushtool::BucketTypes> = HashSet::new();
     let mut weighty_buckets: HashMap<String, crushtool::BucketTypes> = HashMap::new();
     let mut new_rack_buckets: Vec<crushtool::BucketTypes> = Vec::new();
-    println!("Old buckets: {:?}", current_map.buckets.clone());
+    println!("Old buckets: {:?}", &current_map.buckets);
 
-    for bucket in current_map.buckets.clone() {
+    for bucket in current_map.buckets {
         let id: i32;
         match bucket {
             crushtool::BucketTypes::Uniform(ref uniform) => {
@@ -261,12 +261,12 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
         if machine_ids.contains(&id) {
             carryover_buckets.insert(bucket.clone());
             let mut name: String = "".to_string();
-            for (bucket_name, bucket_id) in name_map.clone() {
-                if bucket_id == id {
+            for (bucket_name, bucket_id) in &name_map {
+                if *bucket_id == id {
                     name = bucket_name.clone();
                 }
             }
-            weighty_buckets.insert(name.clone(), bucket.clone());
+            weighty_buckets.insert(name, bucket);
         }
     }
     println!("Carryover buckets: {:?}", carryover_buckets);
@@ -289,8 +289,8 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 
         // For each machine in the machines map we grab the bucket items from out machines map.
         // These are matched by the machine's ID
-        for machine in members.clone() {
-            let index: i32 = match machines_map.get(&machine) {
+        for machine in &members {
+            let index: i32 = match machines_map.get(machine) {
                 Some(index) => *index,
                 None => return Err("Could not match bucket items to machine index".to_string()),
             };
@@ -300,7 +300,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             // machine name
             let weight: u32;
             // Pull the bucket out by index, grab weight
-            let bucket = weighty_buckets.get(&machine).unwrap();
+            let bucket = weighty_buckets.get(machine).unwrap();
 
             match bucket {
                 &crushtool::BucketTypes::Uniform(ref uniform) => {
@@ -337,7 +337,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
                 hash: crushtool::CrushHash::RJenkins1,
                 weight: total_weight,
                 size: members.len() as u32,
-                items: bucket_items.clone(),
+                items: bucket_items,
                 perm_n: 0,
                 perm: members.len() as u32,
             },
@@ -359,7 +359,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             hash: crushtool::CrushHash::RJenkins1,
             weight: running_weight,
             size: new_rack_buckets.len() as u32,
-            items: new_rack_items.clone(),
+            items: new_rack_items,
             perm_n: 0,
             perm: new_rack_buckets.len() as u32,
         },
@@ -371,7 +371,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 
     let mut final_buckets: Vec<crushtool::BucketTypes> = Vec::new();
     final_buckets.push(new_default_bucket);
-    final_buckets.extend(carryover_buckets.clone());
+    final_buckets.extend(carryover_buckets);
     final_buckets.extend(new_rack_buckets);
 
 
