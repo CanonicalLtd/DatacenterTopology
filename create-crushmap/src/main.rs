@@ -30,7 +30,7 @@ fn main() {
         }
         Err(e) => {
             let message = format!("Failed to create crushmap with error: {}", e);
-            juju::log(message.clone(), Some(LogLevel::Error));
+            juju::log(&message, Some(LogLevel::Error));
             juju::status_set(juju::Status {
                 status_type: juju::StatusType::Maintenance,
                 message: message,
@@ -54,7 +54,8 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
     let controller_id = match env::var("JUJU_UNIT_NAME") {
         Ok(id) => id,
         Err(_) => {
-            juju::log("Failed to grab controller id from JUJU.", Some(LogLevel::Error));
+            juju::log("Failed to grab controller id from JUJU.",
+                      Some(LogLevel::Error));
             panic!("Failed to grab controller id from JUJU.");
         }
 
@@ -63,14 +64,15 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
     let controller = parse_unit_into_relation(controller_id);
 
     let juju_related_units =
-    match juju::relation_get_by_id("related-units", &relation_id, &controller) {
-        Ok(units) => units,
-        Err(_) => {
-            juju::log("Failed to grab related units from juju relation.", Some(LogLevel::Error));
-            panic!("Failed to grab related units from juju relation.");
-        }
+        match juju::relation_get_by_id("related-units", &relation_id, &controller) {
+            Ok(units) => units,
+            Err(_) => {
+                juju::log("Failed to grab related units from juju relation.",
+                          Some(LogLevel::Error));
+                panic!("Failed to grab related units from juju relation.");
+            }
 
-    };
+        };
 
     let mut juju_parsed_units: Vec<juju::Relation> = Vec::new();
 
@@ -84,7 +86,8 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
         let hostname = match juju::relation_get_by_id("hostname", &relation_id, &unit) {
             Ok(h) => h,
             Err(_) => {
-                juju::log(format!("Failed to grab hostname from {:?}.", unit), Some(LogLevel::Error));
+                juju::log(format!("Failed to grab hostname from {:?}.", unit),
+                          Some(LogLevel::Error));
                 panic!("Failed to grab hostname from {:?}.", unit);
             }
 
@@ -92,7 +95,8 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
         let neighbors_raw = match juju::relation_get_by_id("neighbors", &relation_id, &unit) {
             Ok(n) => n,
             Err(_) => {
-                juju::log(format!("Failed to grab neighbors from {:?}.", unit), Some(LogLevel::Error));
+                juju::log(format!("Failed to grab neighbors from {:?}.", unit),
+                          Some(LogLevel::Error));
                 panic!("Failed to grab neighbors from {:?}.", unit);
             }
 
@@ -113,7 +117,7 @@ fn grab_relation_data() -> HashMap<String, Vec<String>> {
     machines
 }
 
-fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>>{
+fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>> {
 
     let mut racks: HashSet<Vec<String>> = HashSet::new();
     let mut racked_machines: HashSet<String> = HashSet::new();
@@ -121,8 +125,8 @@ fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>
 
     for (machine, neighbors) in machines {
         let mut members: Vec<String> = Vec::new();
-        members.push(machine.clone());
-        members.extend(neighbors.clone());
+        members.push(machine);
+        members.extend(neighbors);
         members.sort();
         members.dedup();
         potential_racks.push(members);
@@ -132,7 +136,7 @@ fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>
 
     println!("Potential racks: {:?}", potential_racks);
 
-    'rack: for rack in potential_racks.clone() {
+    'rack: for rack in potential_racks {
         // If we have no racks, add it to the rack list.
         if racks.is_empty() {
             racks.insert(rack.clone());
@@ -140,15 +144,15 @@ fn generate_racks(machines: HashMap<String, Vec<String>>) -> HashSet<Vec<String>
             continue 'rack;
         }
         // for each rack, check to see if any of its members is already in another rack
-        for machine in rack.clone() {
+        for machine in &rack {
             println!("Checking {}", machine);
-            if racked_machines.contains(&machine) {
+            if racked_machines.contains(machine) {
                 println!("Machine found in list: {:?}", racked_machines);
                 continue 'rack;
             }
         }
         racks.insert(rack.clone());
-        racked_machines.extend(rack.clone());
+        racked_machines.extend(rack);
     }
 
     println!("Racks: {:?}", racks);
@@ -208,7 +212,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     let mut machine_ids: Vec<i32> = Vec::new();
     for (id, index) in name_map.clone() {
         if machines.contains(&id) {
-            machines_map.insert(id.clone(), index.clone());
+            machines_map.insert(id, index.clone());
             machine_ids.push(index);
         }
     }
@@ -230,9 +234,9 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
     let mut carryover_buckets: HashSet<crushtool::BucketTypes> = HashSet::new();
     let mut weighty_buckets: HashMap<String, crushtool::BucketTypes> = HashMap::new();
     let mut new_rack_buckets: Vec<crushtool::BucketTypes> = Vec::new();
-    println!("Old buckets: {:?}", current_map.buckets.clone());
+    println!("Old buckets: {:?}", &current_map.buckets);
 
-    for bucket in current_map.buckets.clone() {
+    for bucket in current_map.buckets {
         let id: i32;
         match bucket {
             crushtool::BucketTypes::Uniform(ref uniform) => {
@@ -257,12 +261,12 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
         if machine_ids.contains(&id) {
             carryover_buckets.insert(bucket.clone());
             let mut name: String = "".to_string();
-            for (bucket_name, bucket_id) in name_map.clone() {
-                if bucket_id == id {
+            for (bucket_name, bucket_id) in &name_map {
+                if *bucket_id == id {
                     name = bucket_name.clone();
                 }
-            };
-            weighty_buckets.insert(name.clone(), bucket.clone());
+            }
+            weighty_buckets.insert(name, bucket);
         }
     }
     println!("Carryover buckets: {:?}", carryover_buckets);
@@ -285,8 +289,8 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 
         // For each machine in the machines map we grab the bucket items from out machines map.
         // These are matched by the machine's ID
-        for machine in members.clone() {
-            let index: i32 = match machines_map.get(&machine) {
+        for machine in &members {
+            let index: i32 = match machines_map.get(machine) {
                 Some(index) => *index,
                 None => return Err("Could not match bucket items to machine index".to_string()),
             };
@@ -296,21 +300,27 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             // machine name
             let weight: u32;
             // Pull the bucket out by index, grab weight
-            let bucket = weighty_buckets.get(&machine).unwrap();
+            let bucket = weighty_buckets.get(machine).unwrap();
 
             match bucket {
                 &crushtool::BucketTypes::Uniform(ref uniform) => {
-                    weight = uniform.bucket.weight;}
+                    weight = uniform.bucket.weight;
+                }
                 &crushtool::BucketTypes::List(ref list) => {
-                    weight = list.bucket.weight;}
+                    weight = list.bucket.weight;
+                }
                 &crushtool::BucketTypes::Tree(ref tree) => {
-                    weight = tree.bucket.weight;}
+                    weight = tree.bucket.weight;
+                }
                 &crushtool::BucketTypes::Straw(ref straw) => {
-                    weight = straw.bucket.weight;}
+                    weight = straw.bucket.weight;
+                }
                 &crushtool::BucketTypes::Straw2(ref straw2) => {
-                    weight = straw2.bucket.weight;}
+                    weight = straw2.bucket.weight;
+                }
                 &crushtool::BucketTypes::Unknown => {
-                    weight = 0;}
+                    weight = 0;
+                }
             };
 
             bucket_items.push((index, Some(machine.to_string())));
@@ -327,14 +337,14 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
                 hash: crushtool::CrushHash::RJenkins1,
                 weight: total_weight,
                 size: members.len() as u32,
-                items: bucket_items.clone(),
+                items: bucket_items,
                 perm_n: 0,
                 perm: members.len() as u32,
             },
             item_weights: item_weights,
         });
-        final_name_map.push((current_index, format!("Rack: {}",bucket_name.to_string())));
-        new_rack_items.push((current_index, Some(format!("Rack: {}",bucket_name.to_string()))));
+        final_name_map.push((current_index, format!("Rack: {}", bucket_name.to_string())));
+        new_rack_items.push((current_index, Some(format!("Rack: {}", bucket_name.to_string()))));
         new_rack_buckets.push(bucket);
         current_index -= 1;
         bucket_name += 1;
@@ -349,7 +359,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
             hash: crushtool::CrushHash::RJenkins1,
             weight: running_weight,
             size: new_rack_buckets.len() as u32,
-            items: new_rack_items.clone(),
+            items: new_rack_items,
             perm_n: 0,
             perm: new_rack_buckets.len() as u32,
         },
@@ -361,7 +371,7 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 
     let mut final_buckets: Vec<crushtool::BucketTypes> = Vec::new();
     final_buckets.push(new_default_bucket);
-    final_buckets.extend(carryover_buckets.clone());
+    final_buckets.extend(carryover_buckets);
     final_buckets.extend(new_rack_buckets);
 
 
@@ -371,7 +381,9 @@ fn generate_crushmap(racks: HashSet<Vec<String>>) -> Result<(), String> {
 }
 
 fn create_crushmap(final_buckets: Vec<crushtool::BucketTypes>,
-                   devices: i32, final_name_map: Vec<(i32, String)>) -> Result<(), String> {
+                   devices: i32,
+                   final_name_map: Vec<(i32, String)>)
+                   -> Result<(), String> {
 
     let mut new_crushmap: crushtool::CrushMap = crushtool::CrushMap {
         magic: 65536,
@@ -443,8 +455,11 @@ fn parse_unit_into_relation(unit: String) -> juju::Relation {
     let v: Vec<&str> = unit.split('/').collect();
     let id: usize = match v[1].parse::<usize>() {
         Ok(i) => i,
-        Err(_) => {juju::log(format!("Could not parse {} into relation.", unit), Some(LogLevel::Error));
-            panic!("Could not parse {} into relation.", unit)},
+        Err(_) => {
+            juju::log(format!("Could not parse {} into relation.", unit),
+                      Some(LogLevel::Error));
+            panic!("Could not parse {} into relation.", unit)
+        }
 
     };
 
